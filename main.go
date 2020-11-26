@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 
+	cmd "./pkgs/cmd"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,10 +24,11 @@ func parseFlags() config {
 	address := flag.String("address", "localhost", "Server hostname")
 	port := flag.Int("port", 8000, "Server port")
 	command := flag.String("command", "echo apa", "command to be executed")
+	debug := flag.Bool("debug", false, "Enable debug logging")
 
 	flag.Parse()
 
-	config := newConfig(*address, *port, *command)
+	config := newConfig(*address, *port, *command, *debug)
 	return config
 }
 
@@ -35,7 +38,7 @@ func getShell() string {
 	case "windows":
 		return "powershell"
 	case "linux":
-		return "bash"
+		return "sh"
 	default:
 		panic("Unsupported os")
 	}
@@ -43,10 +46,15 @@ func getShell() string {
 
 func main() {
 	config := parseFlags()
+
+	if config.debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
 	log.Infof("Config: { address: %s, port: %d, command: %v }", config.address, config.port, config.command)
 
 	shell := getShell()
-	c := NewCmd(shell, []string{config.command})
+	c := cmd.NewCmd(shell, []string{config.command})
 	result, err := c.Execute()
 	if err != nil {
 		log.Fatal(err)

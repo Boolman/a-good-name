@@ -5,7 +5,8 @@ import (
 	"os"
 	"runtime"
 
-	cmd "./pkgs/cmd"
+	configuration "../../internal/configuration"
+	cmd "../../pkgs/cmd"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -20,7 +21,7 @@ func init() {
 	log.SetReportCaller(true)
 }
 
-func parseFlags() config {
+func parseFlags() configuration.Config {
 	address := flag.String("address", "localhost", "Server hostname")
 	port := flag.Int("port", 8000, "Server port")
 	command := flag.String("command", "echo apa", "command to be executed")
@@ -28,7 +29,7 @@ func parseFlags() config {
 
 	flag.Parse()
 
-	config := newConfig(*address, *port, *command, *debug)
+	config := configuration.NewConfig(*address, *port, *command, *debug)
 	return config
 }
 
@@ -47,14 +48,14 @@ func getShell() string {
 func main() {
 	config := parseFlags()
 
-	if config.debug {
+	if config.Debug {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	log.Infof("Config: { address: %s, port: %d, command: %v }", config.address, config.port, config.command)
+	log.Infof("Config: { address: %s, port: %d, command: %v }", config.Address, config.Port, config.Command)
 
 	shell := getShell()
-	c := cmd.NewCmd(shell, []string{config.command})
+	c := cmd.NewCmd(shell, []string{config.Command})
 	result, err := c.Execute()
 	if err != nil {
 		log.Fatal(err)
